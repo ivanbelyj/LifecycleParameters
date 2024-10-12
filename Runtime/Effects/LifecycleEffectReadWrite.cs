@@ -4,12 +4,13 @@ using Mirror;
 using UnityEngine;
 
 /// <summary>
-/// Class that allows Mirror to serialize LifecycleEffects
+/// Class that allows Mirror to serialize lifecycle effects
 /// and transport they by network
 /// </summary>
 public static class LifecycleEffectReadWrite
 {
-    public static void WriteLifecycleEffect(this NetworkWriter writer,
+    public static void WriteLifecycleEffect(
+        this NetworkWriter writer,
         LifecycleEffect effect) {
 
         writer.WriteFloat(effect.duration);

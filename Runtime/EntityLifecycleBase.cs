@@ -7,164 +7,88 @@ using UnityEngine;
 using UnityEngine.Events;
 
 ///<summary>
-/// A component of the lifecycle of a living being
+/// A component of the lifecycle of an entity (a living being, for example)
 ///</summary>
+[RequireComponent(typeof(IParameterStorage))]
+[RequireComponent(typeof(EffectManager))]
+[RequireComponent(typeof(IInitialEffectsProvider))]
+[RequireComponent(typeof(IInitialParametersProvider))]
 public abstract class EntityLifecycleBase : NetworkBehaviour
 {
-    private readonly SyncHashSet<LifecycleEffect> syncEffects =
-        new SyncHashSet<LifecycleEffect>();
-
-    private HashSet<LifecycleEffect> effects;
-
-    ///<summary>
-    /// All uncompleted effects applied to change the parameters of the lifecycle.
-    /// Completed effects are removed after regular traversal 
-    ///</summary>
-    public HashSet<LifecycleEffect> Effects => effects;
-
-    // [SerializeField]
-    // protected LifecycleParameter[] initialParameters;
-
-    ///<summary>
-    /// All lifecycle parameters collected for traversal.
-    /// Dynamic addition / removal of parameters is not assumed
-    ///</summary>
-    protected IReadOnlyDictionary<uint, LifecycleParameter> Parameters { get; private set; }
+    private protected ParameterManager parameterManager;
+    protected EffectManager effectManager;
+    protected IParameterStorage parameterStorage;
 
     public virtual void Awake() {
-        syncEffects.Callback += SyncEffects;
-        effects = new HashSet<LifecycleEffect>();
-
-        Dictionary<uint, LifecycleParameter> parametersDict
-            = new Dictionary<uint, LifecycleParameter>();
-        foreach (var parameter in GetInitialParameters()) {
-            parametersDict.Add(parameter.ParameterId, parameter);
-        }
-        Parameters = parametersDict;
-    }
-
-    /// <summary>
-    /// Derived class gets parameters from user-friendly places.
-    /// Access parameters in user code via properties or fields 
-    /// is more convenient than array
-    /// </summary>
-    public abstract LifecycleParameter[] GetInitialParameters();
-
-    /// <summary>
-    /// Derived class gets initial effects from user-friendly places.
-    /// Access initial effects in user code via properties or fields 
-    /// is more convenient than array
-    /// </summary>
-    public abstract LifecycleEffect[] GetInitialEffects();
-
-    public override void OnStartClient() {
-        // When connecting a player on the server, there could already be effects
-        foreach (var effect in syncEffects) {
-            effects.Add(effect);
-        }
+        effectManager = GetComponent<EffectManager>();
+        parameterStorage = GetComponent<IParameterStorage>();
     }
 
     public override void OnStartServer()
     {
         base.OnStartServer();
 
+        parameterManager = new ParameterManager(
+            GetInitialParameters(),
+            parameterStorage);
+
         // Setting and synchronizing the initial effects set in the inspector
-        var initialEffects = GetInitialEffects();
-        for (int i = 0; i < initialEffects.Length; i++) {
-            AddEffectAndSetStartTime(initialEffects[i]);
+        foreach (var initialEffect in GetInitialEffects()) {
+            effectManager.AddEffectAndSetStartTime(initialEffect);
         }
     }
 
-    private void SyncEffects(SyncHashSet<LifecycleEffect>.Operation op,  LifecycleEffect item) {
-        switch (op) {
-            case SyncHashSet<LifecycleEffect>.Operation.OP_ADD:
-            {
-                effects.Add(item);
-                break;
-            }
-            case SyncHashSet<LifecycleEffect>.Operation.OP_REMOVE:
-            {
-                effects.Remove(item);
-                break;
-            }
-        }
-    }
-
-    #region Add And Remove Effects
-
-    [Server]
-    private void AddLifecycleEffect(LifecycleEffect effect) {
-        syncEffects.Add(effect);
-    }
-
-    [Command]
-    private void CmdAddLifecycleEffect(LifecycleEffect effect) {
-        AddLifecycleEffect(effect);
-    }
-
-    [Server]
-    private void RemoveLifecycleEffect(LifecycleEffect effect) {
-        syncEffects.Remove(effect);
-    }
-
-    [Command]
-    private void CmdRemoveLifecycleEffect(LifecycleEffect effect) {
-        RemoveLifecycleEffect(effect);
+    public LifecycleEffect AddEffectAndSetStartTime(LifecycleEffect effect) {
+        return effectManager.AddEffectAndSetStartTime(effect);
     }
 
     public void RemoveEffect(LifecycleEffect effect) {
-        if (isServer) {
-            RemoveLifecycleEffect(effect);
-        } else {
-            CmdRemoveLifecycleEffect(effect);
-        }
+        effectManager.RemoveEffect(effect);
     }
 
-    /// <summary>
-    /// Adds an effect and returns the same effect, but with a set start time
-    /// (which was added)
-    /// </summary>
-    public LifecycleEffect AddEffectAndSetStartTime(LifecycleEffect effect) {
-        effect.StartTime = NetworkTime.time;
-        // Todo: not change passed effect
-        if (isServer) {
-            AddLifecycleEffect(effect);
-        } else {
-            CmdAddLifecycleEffect(effect);
-        }
-        return effect;
+    public float GetParameterValue(uint parameterId) {
+        return parameterStorage.GetParameterValue(parameterId);
     }
-    #endregion
 
     private void Update() {
-        UpdateEffects();
+        if (isServer) {
+            UpdateEffects();
+        }
     }
 
+    [Server]
     private void UpdateEffects() {
-        List<LifecycleEffect> effectsToRemove = new List<LifecycleEffect>();
-        foreach (var effect in effects) {
-            if (!effect.isInfinite && IsPassed(effect)) {
+        var effectsToRemove = new List<LifecycleEffect>();
+        foreach (var effect in effectManager.Effects) {
+            if (!effect.isInfinite && effect.IsPassed) {
                 // Past temporary effects are postponed for deletion
                 // (can't change the dictionary while we're going through it)
-                if (isServer)
-                    effectsToRemove.Add(effect);
+                effectsToRemove.Add(effect);
             } else {
-                ApplyEffect(effect);
+                parameterManager.ApplyEffect(effect);
             }
         }
-        if (isServer) {
-            foreach (var effectId in effectsToRemove)
-                RemoveLifecycleEffect(effectId);
+
+        foreach (var effectId in effectsToRemove) {
+            effectManager.RemoveLifecycleEffect(effectId);
         }
     }
 
-    bool IsPassed(LifecycleEffect effect) => effect.StartTime + effect.duration <= NetworkTime.time;
+    private LifecycleParameter[] GetInitialParameters()
+    {
+        return CreateLifecycleParameters(
+            GetComponent<IInitialParametersProvider>().GetInitialParameters());
+    }
 
-    public void ApplyEffect(LifecycleEffect effect) {
-        // If the effect is infinite or has not completed
-        if ((effect.isInfinite || !IsPassed(effect))) {
-            LifecycleParameter target = Parameters[effect.targetParameterId];
-            target.Value += effect.speed * Time.deltaTime;
-        }
+    private LifecycleEffect[] GetInitialEffects()
+    {
+        return GetComponent<IInitialEffectsProvider>().GetInitialEffects();
+    }
+    
+    private LifecycleParameter[] CreateLifecycleParameters(
+        LifecycleParameterData[] data) {
+        return data
+            .Select(x => new LifecycleParameter(x))
+            .ToArray();
     }
 }

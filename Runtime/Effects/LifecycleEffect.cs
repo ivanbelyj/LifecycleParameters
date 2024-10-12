@@ -1,27 +1,27 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
 ///<summary>
-/// Effect applied to the life cycle parameter
+/// Effect applied to the lifecycle parameter
 ///</summary>
-[System.Serializable]
+[Serializable]
 public struct LifecycleEffect : IEquatable<LifecycleEffect>
 {
     public bool isInfinite;
 
-    [Tooltip("Value, added / subtracted from the parameter value per second")]
     /// <summary>
     /// Value, added / subtracted from the parameter value per second
     /// </summary>
+    [Tooltip("Value, added / subtracted from the parameter value per second")]
     public float speed;
-
     
-    [Tooltip("Effect duration in seconds")]
     /// <summary>
     /// Effect duration in seconds
     /// </summary>
+    [Tooltip("Effect duration in seconds")]
     public float duration;
     
     /// <summary>
@@ -30,6 +30,8 @@ public struct LifecycleEffect : IEquatable<LifecycleEffect>
     public uint targetParameterId;
 
     public double StartTime { get; set; }
+
+    public bool IsPassed => StartTime + duration <= NetworkTime.time;
 
     public override bool Equals(object obj)
     {
@@ -51,7 +53,7 @@ public struct LifecycleEffect : IEquatable<LifecycleEffect>
 
     public override string ToString()
     {
-        return "{" + $" isInfinite: {isInfinite}; speed: {speed}; duration: {duration};"
-            + $" targetParameter: {targetParameterId}; StartTime: {StartTime}" + "}";
+        return "{" + $" isInfinite: {isInfinite}; speed: {speed}; duration: {duration}; "
+            + $"targetParameter: {targetParameterId}; StartTime: {StartTime}" + "}";
     }
 }
