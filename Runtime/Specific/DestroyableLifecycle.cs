@@ -10,7 +10,7 @@ using static LifecycleParameterIds;
 
 public class DestroyableLifecycle : EntityLifecycleBase
 {
-    public event Action OnEntityDestroyed;
+    public event Action EntityDestroyed;
 
     public override void OnStartServer()
     {
@@ -39,6 +39,6 @@ public class DestroyableLifecycle : EntityLifecycleBase
     }
 
     public virtual void DestroyEntity() {
-        OnEntityDestroyed?.Invoke();
+        EntityDestroyed?.Invoke();
     }
 }

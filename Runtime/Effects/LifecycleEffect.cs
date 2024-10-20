@@ -33,6 +33,18 @@ public struct LifecycleEffect : IEquatable<LifecycleEffect>
 
     public bool IsPassed => StartTime + duration <= NetworkTime.time;
 
+    public static LifecycleEffect CreateForDelta(
+        uint targetParameterId,
+        float delta,
+        float duration) {
+        return new() {
+            targetParameterId = targetParameterId,
+            duration = duration,
+            speed = delta / duration,
+            isInfinite = false
+        };
+    }
+
     public override bool Equals(object obj)
     {
         return obj is LifecycleEffect effect && Equals(effect);
