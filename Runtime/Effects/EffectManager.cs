@@ -38,15 +38,12 @@ public class EffectManager : NetworkBehaviour
     /// Adds an effect and returns the same effect, but setting start time
     /// (which was added)
     /// </summary>
-    public LifecycleEffect AddEffectAndSetStartTime(LifecycleEffect effect) {
-        effect.StartTime = NetworkTime.time;
-        // Todo: not change passed effect
+    public void AddEffect(LifecycleEffect effect) {
         if (isServer) {
             AddLifecycleEffect(effect);
         } else {
             CmdAddLifecycleEffect(effect);
         }
-        return effect;
     }
 
     #region Sync
@@ -68,7 +65,8 @@ public class EffectManager : NetworkBehaviour
     }
 
     [Server]
-    public void RemoveLifecycleEffect(LifecycleEffect effect) {
+    private void RemoveLifecycleEffect(LifecycleEffect effect) {
+        // Todo: will it work ?
         syncEffects.Remove(effect);
     }
 
@@ -79,10 +77,13 @@ public class EffectManager : NetworkBehaviour
 
     [Server]
     private void AddLifecycleEffect(LifecycleEffect effect) {
+        effect.StartTime = NetworkTime.time;
+        // Todo: not change passed effect
+
         syncEffects.Add(effect);
     }
 
-    [Command]
+    [Command(requiresAuthority = false)]
     private void CmdAddLifecycleEffect(LifecycleEffect effect) {
         AddLifecycleEffect(effect);
     }

@@ -10,5 +10,5 @@ public static class LifecycleParameterIds
     /// <summary>
     /// Also can be used for health
     /// </summary>
-    public const uint Strength = 0;
+    public const uint Strength = 1;
 }

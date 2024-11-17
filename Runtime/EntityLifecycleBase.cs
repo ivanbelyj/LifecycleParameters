@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
-using UnityEngine.Events;
 
 ///<summary>
 /// A component of the lifecycle of an entity (a living being, for example)
@@ -22,6 +21,18 @@ public abstract class EntityLifecycleBase : NetworkBehaviour
     public virtual void Awake() {
         effectManager = GetComponent<EffectManager>();
         parameterStorage = GetComponent<IParameterStorage>();
+
+        // Todo: use one method
+        if (GetComponent<IInitialEffectsProvider>() == null) {
+            Debug.LogError(
+                $"{nameof(IInitialEffectsProvider)} is required for {nameof(EntityLifecycleBase)}. " +
+                $"Consider adding it to the game object (name: {gameObject.name})");
+        }
+        if (GetComponent<IInitialParametersProvider>() == null) {
+            Debug.LogError(
+                $"{nameof(IInitialParametersProvider)} is required for {nameof(EntityLifecycleBase)}. " +
+                $"Consider adding it to the game object (name: {gameObject.name})");
+        }
     }
 
     public override void OnStartServer()
@@ -34,12 +45,12 @@ public abstract class EntityLifecycleBase : NetworkBehaviour
 
         // Setting and synchronizing the initial effects set in the inspector
         foreach (var initialEffect in GetInitialEffects()) {
-            effectManager.AddEffectAndSetStartTime(initialEffect);
+            effectManager.AddEffect(initialEffect);
         }
     }
 
-    public LifecycleEffect AddEffectAndSetStartTime(LifecycleEffect effect) {
-        return effectManager.AddEffectAndSetStartTime(effect);
+    public void AddEffect(LifecycleEffect effect) {
+        effectManager.AddEffect(effect);
     }
 
     public void RemoveEffect(LifecycleEffect effect) {
@@ -69,20 +80,22 @@ public abstract class EntityLifecycleBase : NetworkBehaviour
             }
         }
 
-        foreach (var effectId in effectsToRemove) {
-            effectManager.RemoveLifecycleEffect(effectId);
+        foreach (var effect in effectsToRemove) {
+            effectManager.RemoveEffect(effect);
         }
     }
 
     private LifecycleParameter[] GetInitialParameters()
     {
         return CreateLifecycleParameters(
-            GetComponent<IInitialParametersProvider>().GetInitialParameters());
+            GetComponent<IInitialParametersProvider>()?.GetInitialParameters()
+            ?? Array.Empty<LifecycleParameterData>());
     }
 
     private LifecycleEffect[] GetInitialEffects()
     {
-        return GetComponent<IInitialEffectsProvider>().GetInitialEffects();
+        return GetComponent<IInitialEffectsProvider>()?.GetInitialEffects()
+            ?? Array.Empty<LifecycleEffect>();
     }
     
     private LifecycleParameter[] CreateLifecycleParameters(
