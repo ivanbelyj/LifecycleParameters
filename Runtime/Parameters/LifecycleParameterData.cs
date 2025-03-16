@@ -7,8 +7,8 @@ using UnityEngine;
 public class LifecycleParameterData
 {
     [SerializeField]
-    private uint parameterId = 0;
-    public uint ParameterId { get => parameterId; set => parameterId = value; }
+    private string parameterId = "";
+    public string ParameterId { get => parameterId; set => parameterId = value; }
 
     [SerializeField]
     private float minValue = 0;

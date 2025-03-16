@@ -17,7 +17,7 @@ public static class LifecycleEffectReadWrite
         writer.WriteBool(effect.isInfinite);
         writer.WriteFloat(effect.speed);
 
-        writer.WriteUInt(effect.targetParameterId);
+        writer.WriteString(effect.targetParameterId);
         writer.WriteDouble(effect.StartTime);
     }
 
@@ -27,7 +27,7 @@ public static class LifecycleEffectReadWrite
         bool isInfinite = reader.ReadBool();
         float speed = reader.ReadFloat();
 
-        uint targetParameterId = reader.ReadUInt();
+        string targetParameterId = reader.ReadString();
         double startTime = reader.ReadDouble();
 
         LifecycleEffect effect = new LifecycleEffect() {

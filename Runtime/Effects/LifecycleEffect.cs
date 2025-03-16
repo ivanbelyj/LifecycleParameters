@@ -27,14 +27,14 @@ public struct LifecycleEffect : IEquatable<LifecycleEffect>
     /// <summary>
     /// Every effect is applied by parameter id
     /// </summary>
-    public uint targetParameterId;
+    public string targetParameterId;
 
     public double StartTime { get; set; }
 
     public bool IsPassed => StartTime + duration <= NetworkTime.time;
 
     public static LifecycleEffect CreateForDelta(
-        uint targetParameterId,
+        string targetParameterId,
         float delta,
         float duration) {
         return new() {

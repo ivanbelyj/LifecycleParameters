@@ -14,6 +14,7 @@ using UnityEngine;
 [RequireComponent(typeof(IInitialParametersProvider))]
 public abstract class EntityLifecycleBase : NetworkBehaviour
 {
+    public event EventHandler<List<string>> Initialized;
     private protected ParameterManager parameterManager;
     protected EffectManager effectManager;
     protected IParameterStorage parameterStorage;
@@ -47,6 +48,8 @@ public abstract class EntityLifecycleBase : NetworkBehaviour
         foreach (var initialEffect in GetInitialEffects()) {
             effectManager.AddEffect(initialEffect);
         }
+
+        Initialized?.Invoke(this, GetAllParameterIds().ToList());
     }
 
     public void AddEffect(LifecycleEffect effect) {
@@ -57,9 +60,12 @@ public abstract class EntityLifecycleBase : NetworkBehaviour
         effectManager.RemoveEffect(effect);
     }
 
-    public float GetParameterValue(uint parameterId) {
+    public float GetParameterValue(string parameterId) {
         return parameterStorage.GetParameterValue(parameterId);
     }
+
+    public IEnumerable<string> GetAllParameterIds()
+        => parameterManager.GetAllParameterIds();
 
     private void Update() {
         if (isServer) {

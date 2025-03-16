@@ -2,23 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using static LivingEntityLifecycleParameterIds;
+
+public static class LivingEntityLifecycleParameterIds
+{
+    public const string Endurance = nameof(Endurance);
+    public const string Satiety = nameof(Satiety);
+    public const string Bleed = nameof(Bleed);
+    public const string Radiation = nameof(Radiation);
+}
+
 public class LivingEntityParametersProvider :
     MonoBehaviour,
     IInitialParametersProvider,
     IInitialEffectsProvider
 {
-    private const uint EnduranceParameterId = 2;
-    private const uint SatietyParameterId = 3;
-    private const uint BleedParameterId = 4;
-    private const uint RadiationParameterId = 5;
-
     #region Parameters
     [Header("Parameters")]
     [SerializeField]
     private LifecycleParameterData health = new() {
         MinValue = 0,
         MaxValue = 1,
-        ParameterId = LifecycleParameterIds.Strength,
+        ParameterId = LifecycleParameterIds.Integrity,
         InitialValue = 1,
         RecoveredValue = 1
     };
@@ -27,7 +32,7 @@ public class LivingEntityParametersProvider :
     private LifecycleParameterData endurance = new() {
         MinValue = 0,
         MaxValue = 1,
-        ParameterId = EnduranceParameterId,
+        ParameterId = Endurance,
         InitialValue = 1,
         RecoveredValue = 1
     };
@@ -36,7 +41,7 @@ public class LivingEntityParametersProvider :
     private LifecycleParameterData satiety = new() {
         MinValue = 0,
         MaxValue = 1,
-        ParameterId = SatietyParameterId,
+        ParameterId = Satiety,
         InitialValue = 1,
         RecoveredValue = 0
     };
@@ -45,7 +50,7 @@ public class LivingEntityParametersProvider :
     private LifecycleParameterData bleed = new() {
         MinValue = 0,
         MaxValue = 1,
-        ParameterId = BleedParameterId,
+        ParameterId = Bleed,
         InitialValue = 0,
         RecoveredValue = 0
     };
@@ -54,7 +59,7 @@ public class LivingEntityParametersProvider :
     private LifecycleParameterData radiation = new() {
         MinValue = 0,
         MaxValue = 1,
-        ParameterId = RadiationParameterId,
+        ParameterId = Radiation,
         InitialValue = 0,
         RecoveredValue = 0
     };
@@ -65,28 +70,28 @@ public class LivingEntityParametersProvider :
     [SerializeField]
     private LifecycleEffect regeneration = new() {
         isInfinite = true,
-        targetParameterId = LifecycleParameterIds.Strength,
+        targetParameterId = LifecycleParameterIds.Integrity,
         speed = 0.02f
     };
 
     [SerializeField]
     private LifecycleEffect enduranceRecovery = new() {
         isInfinite = true,
-        targetParameterId = EnduranceParameterId,
+        targetParameterId = Endurance,
         speed = 0.01f
     };
 
     [SerializeField]
     private LifecycleEffect hunger = new() {
         isInfinite = true,
-        targetParameterId = SatietyParameterId,
+        targetParameterId = Satiety,
         speed = -0.001f
     };
 
     [SerializeField]
     private LifecycleEffect radiationExcretion = new() {
         isInfinite = true,
-        targetParameterId = RadiationParameterId,
+        targetParameterId = Radiation,
         speed = -0.001f
     };
     #endregion

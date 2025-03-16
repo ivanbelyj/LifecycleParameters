@@ -16,7 +16,7 @@ public class DestroyableLifecycle : EntityLifecycleBase
     {
         base.OnStartServer();
 
-        var health = parameterManager.GetParameter(Strength);
+        var health = parameterManager.GetParameter(Integrity);
 
         health.MinReached += OnDestroyEntity;
 

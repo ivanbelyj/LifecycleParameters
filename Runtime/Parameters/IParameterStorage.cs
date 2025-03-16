@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IParameterStorage
 {
-    float GetParameterValue(uint parameterId);
-    void SetParameterValue(uint parameterId, float value);
+    float GetParameterValue(string parameterId);
+    void SetParameterValue(string parameterId, float value);
 }

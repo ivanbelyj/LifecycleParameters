@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Ids of common often used lifecycle parameters
+/// Ids of the most common lifecycle parameters
 /// </summary>
 public static class LifecycleParameterIds
 {
     /// <summary>
-    /// Also can be used for health
+    /// Health or integrity of an entity
     /// </summary>
-    public const uint Strength = 1;
+    public const string Integrity = nameof(Integrity);
 }

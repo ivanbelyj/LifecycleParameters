@@ -8,15 +8,15 @@ using UnityEngine;
 /// </summary>
 public class ParameterStorage : NetworkBehaviour, IParameterStorage
 {
-    private readonly SyncDictionary<uint, float> syncValues = new();
+    private readonly SyncDictionary<string, float> syncValues = new();
 
-    public float GetParameterValue(uint parameterId)
+    public float GetParameterValue(string parameterId)
     {
         return syncValues[parameterId];
     }
 
     [Server]
-    public void SetParameterValue(uint parameterId, float value)
+    public void SetParameterValue(string parameterId, float value)
     {
         syncValues[parameterId] = value; 
     }

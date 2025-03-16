@@ -27,8 +27,8 @@ internal class LifecycleParameter
     public event ValueChangedHandler OnRecoveredValueChanged;
     #endregion
 
-    private uint parameterId;
-    public uint ParameterId {
+    private string parameterId;
+    public string ParameterId {
         get => parameterId;
     }
     
