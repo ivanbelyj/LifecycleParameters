@@ -16,7 +16,7 @@ public class EffectManager : NetworkBehaviour
     public HashSet<LifecycleEffect> Effects => effects;
 
     public virtual void Awake() {
-        syncEffects.Callback += SyncEffects;
+        syncEffects.OnChange += SyncEffects;
     }
 
     public override void OnStartClient() {
